@@ -2,3 +2,6 @@
 
 .idea/
 
+poetry.lock
+
+src/migrations/script.py.mako

@@ -4,4 +4,4 @@
 
 poetry.lock
 
-src/migrations/script.py.mako
+src/infrastructure/db/migrations/script.py.mako

@@ -5,8 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from src.config import settings
-from src.database import Base
+from src.core.config import settings
+from src.infrastructure.db.database import Base
 
 # TODO внести импорт моделей ORM таблиц
 

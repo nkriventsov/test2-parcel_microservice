@@ -1,4 +1,5 @@
-
+from src.infrastructure.repositories.package_repository import PackageRepository
+from src.infrastructure.repositories.type_repository import TypeRepository
 
 
 # Определяем класс DBManager для управления взаимодействием с базой данных.
@@ -14,7 +15,8 @@ class DBManager:
         self.session = self.session_factory()
 
         # Создаем экземпляры репозиториев для работы с отелями, комнатами и пользователями, передавая созданную сессию.
-        self.hotels = ...
+        self.package = PackageRepository(self.session)
+        self.type = TypeRepository(self.session)
 
         # Возвращаем экземпляр DBManager, чтобы его можно было использовать внутри контекстного менеджера.
         return self

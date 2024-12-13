@@ -1,15 +1,29 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
-from sqlalchemy.orm import relationship
-from src.infrastructure.db.database import Base
+from sqlalchemy import ForeignKey  # Импорт для создания внешних ключей
+from sqlalchemy.orm import Mapped, mapped_column, relationship  # Импорт инструментов для работы с ORM
+from src.infrastructure.db.database import Base  # Импорт базового класса модели
 
 
-class Package(Base):
-    __tablename__ = "packages"
+# Определение модели для таблицы "packages"
+class PackageOrm(Base):
+    __tablename__ = "packages"  # Имя таблицы в базе данных
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    weight = Column(Float, nullable=False)
-    type_id = Column(Integer, ForeignKey("package_types.id"), nullable=False)
-    content_value = Column(Float, nullable=False)
+    # Идентификатор пакета, первичный ключ, индексируется для быстрого поиска
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
-    package_type = relationship("PackageType", back_populates="packages")
+    # Имя пакета, обязательное поле
+    name: Mapped[str] = mapped_column(nullable=False)
+
+    # Вес пакета, обязательное поле
+    weight: Mapped[float] = mapped_column(nullable=False)
+
+    # Внешний ключ, ссылающийся на таблицу "package_types", обязательное поле
+    type_id: Mapped[int] = mapped_column(ForeignKey("package_types.id"), nullable=False)
+
+    # Стоимость содержимого пакета, обязательное поле
+    content_value: Mapped[float] = mapped_column(nullable=False)
+
+    session_id: Mapped[str] = mapped_column(nullable=False, index=True)
+
+    # Связь "многие к одному" с моделью "PackageType", обратная связь определяется в "PackageType"
+    package_type: Mapped["PackageTypeOrm"] = relationship("PackageTypeOrm", back_populates="packages")
+

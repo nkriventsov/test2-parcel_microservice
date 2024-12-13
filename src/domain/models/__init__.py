@@ -1,5 +1,5 @@
-from .package import Package
-from .package_type import PackageType
+from .package import PackageOrm
+from .package_type import PackageTypeOrm
 
 
-__all__ = ["Package", "PackageType"]
+__all__ = ["PackageOrm", "PackageTypeOrm"]

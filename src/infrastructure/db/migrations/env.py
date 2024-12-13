@@ -8,7 +8,8 @@ from alembic import context
 from src.core.config import settings
 from src.infrastructure.db.database import Base
 
-# TODO внести импорт моделей ORM таблиц
+from src.domain.models.package import PackageOrm
+from src.domain.models.package_type import PackageTypeOrm
 
 
 # this is the Alembic Config object, which provides

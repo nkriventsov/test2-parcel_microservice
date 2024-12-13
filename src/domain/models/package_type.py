@@ -1,12 +1,16 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
-from src.infrastructure.db.database import Base
+from sqlalchemy.orm import Mapped, mapped_column, relationship  # Импорт классов и функций для работы с ORM SQLAlchemy
+from src.infrastructure.db.database import Base  # Импорт базового класса модели из модуля базы данных
 
 
-class PackageType(Base):
-    __tablename__ = "package_types"
+# Определение модели для таблицы "package_types"
+class PackageTypeOrm(Base):
+    __tablename__ = "package_types"  # Имя таблицы в базе данных
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False, unique=True)
+    # Колонка для идентификатора с первичным ключом и индексом для оптимизации поиска
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
-    packages = relationship("Package", back_populates="package_type")
+    # Колонка для имени типа пакета, обязательное поле, уникальное значение
+    name: Mapped[str] = mapped_column(nullable=False, unique=True)
+
+    # Связь "один ко многим" с таблицей "packages", устанавливается через поле package_type в модели "Package"
+    packages: Mapped[list["PackageOrm"]] = relationship("PackageOrm", back_populates="package_type")

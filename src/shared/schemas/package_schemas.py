@@ -1,22 +1,27 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
 
-class PackageCreate(BaseModel):
+class PackageCreateRequest(BaseModel):
     name: str
     weight: float = Field(..., gt=0, description="Вес должен быть больше 0")
     type_id: int
-    content_value: float = Field(..., ge=0, description="Стоимость содержимого не должна быть отрицаательной")
+    content_value: float = Field(..., ge=0, description="Стоимость содержимого не должна быть отрицательной")
+
+
+class PackageCreate(PackageCreateRequest):
+    id: int
 
 
 class PackageResponse(PackageCreate):
-    id: int
     type_name: str  # Имя типа, полученное из связи
     delivery_cost: Optional[float]
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PackageUpdate(BaseModel):
     name: Optional[str]
     weight: Optional[float] = Field(None, gt=0, description="Вес должен быть больше 0")
     type_id: Optional[int]
-    content_value: Optional[float] = Field(None, ge=0, description="Стоимость содержимого не должна быть отрицаательной")
+    content_value: Optional[float] = Field(None, ge=0, description="Стоимость содержимого не должна быть отрицательной")

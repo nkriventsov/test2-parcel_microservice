@@ -1,3 +1,4 @@
+from src.infrastructure.connectors.redis_connector import RedisManager
 from src.infrastructure.repositories.package_repository import PackageRepository
 from src.infrastructure.repositories.type_repository import TypeRepository
 
@@ -6,8 +7,9 @@ from src.infrastructure.repositories.type_repository import TypeRepository
 class DBManager:
     # Инициализатор класса, который принимает session_factory,
     # используемый для создания сессий взаимодействия с базой данных.
-    def __init__(self, session_factory):
+    def __init__(self, session_factory, redis_manager: RedisManager):
         self.session_factory = session_factory
+        self.redis = redis_manager  # Добавляем менеджер Redis
 
     # Асинхронный метод для входа в контекстный менеджер (использование with ... as ...).
     async def __aenter__(self):

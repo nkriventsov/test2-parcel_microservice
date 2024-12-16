@@ -5,3 +5,6 @@
 poetry.lock
 
 src/infrastructure/db/migrations/script.py.mako
+
+.secrets.toml
+

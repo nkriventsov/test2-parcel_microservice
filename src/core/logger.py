@@ -1,6 +1,11 @@
 from loguru import logger
 import sys
 
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).parent.parent))
+
+
 # Настройка логирования
 logger.remove()  # Удаляем стандартный обработчик
 logger.add(sys.stderr, level="INFO", format="{time} {level} {message}")

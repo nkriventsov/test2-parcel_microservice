@@ -8,3 +8,4 @@ api_router.include_router(v1_router)
 api_router.include_router(healthcheck.healthcheck_router)
 
 api_router.include_router(tasks.tasks_router)
+

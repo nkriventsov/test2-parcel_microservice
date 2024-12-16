@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Depends, Query
 from pydantic import BaseModel
 
+from src.infrastructure.connectors.init import redis_manager
 from src.infrastructure.db.database import async_session_maker
 from src.infrastructure.db.db_manager import DBManager
 
@@ -19,7 +20,7 @@ PaginationDep = Annotated[PaginationParams, Depends()]
 
 # Определяем функцию для создания экземпляра DBManager с использованием фабрики сессий async_session_maker.
 def get_db_manager():
-    return DBManager(session_factory=async_session_maker)
+    return DBManager(session_factory=async_session_maker, redis_manager=redis_manager)
 
 
 # Асинхронная генераторная функция, которая предоставляет экземпляр DBManager в асинхронном контекстном менеджере.

@@ -24,6 +24,9 @@ class PackageOrm(Base):
 
     session_id: Mapped[str] = mapped_column(nullable=False, index=True)
 
+    # Поле стоимости доставки, которое может быть NULL
+    delivery_cost: Mapped[float | None] = mapped_column(nullable=True)
+
     # Связь "многие к одному" с моделью "PackageType", обратная связь определяется в "PackageType"
     package_type: Mapped["PackageTypeOrm"] = relationship("PackageTypeOrm", back_populates="packages")
 

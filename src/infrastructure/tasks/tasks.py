@@ -1,25 +1,18 @@
-from celery import shared_task
-from src.domain.services.cost_calculator import calculate_delivery_cost
-from src.infrastructure.external.currency_service import get_exchange_rate
-from src.infrastructure.db.db_manager import DBManager
-from src.infrastructure.db.database import async_session_maker
+import asyncio
+from loguru import logger
+
+from src.application.commands.register_package import register_package_command
+from src.application.commands.update_exchange_rate import update_exchange_rate_command
+from src.core.celery_app import celery_instance
 
 
-@shared_task
-def calculate_costs():
-    async def task_logic():
-        async with async_session_maker() as session:
-            db = DBManager(session)
-            # Получаем необработанные посылки
-            packages = await db.package.get_filtered(has_delivery_cost=False)
-            exchange_rate = await get_exchange_rate(db.redis)
+@celery_instance.task(name="src.infrastructure.tasks.tasks.register_package")
+def register_package_task(package_data: dict, session_id: str):
 
-            for package in packages:
-                cost = calculate_delivery_cost(package.weight, package.content_value, exchange_rate)
-                await db.package.update(package.id, {"delivery_cost": cost})
+    asyncio.run(register_package_command(package_data, session_id))
 
-            await db.commit()
 
-    import asyncio
-    asyncio.run(task_logic())
+@celery_instance.task(name="src.infrastructure.tasks.tasks.update_exchange_rate")
+def update_exchange_rate_task():
 
+    asyncio.run(update_exchange_rate_command())

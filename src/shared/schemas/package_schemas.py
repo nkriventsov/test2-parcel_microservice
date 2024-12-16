@@ -11,9 +11,12 @@ class PackageCreateRequest(BaseModel):
 
 class PackageCreate(PackageCreateRequest):
     id: int
+    delivery_cost: float
+    session_id: str
 
 
-class PackageResponse(PackageCreate):
+class PackageResponse(BaseModel):
+    id: int
     type_name: str  # Имя типа, полученное из связи
     delivery_cost: Optional[float]
 

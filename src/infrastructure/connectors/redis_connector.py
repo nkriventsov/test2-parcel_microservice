@@ -89,3 +89,12 @@ class RedisManager:
             except Exception as e:
                 logger.error(f"Ошибка при закрытии подключения к Redis: {e}")
                 raise
+
+    async def __aenter__(self):
+        """Подключение к Redis при входе в контекст."""
+        await self.connect()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Закрытие подключения к Redis при выходе из контекста."""
+        await self.close()

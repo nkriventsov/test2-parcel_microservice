@@ -2,6 +2,7 @@ from fastapi import APIRouter, Body, Cookie, Query
 
 from src.application.queries.get_package import get_package_query
 from src.application.queries.list_packages import list_packages_query
+from src.exceptions import PackageRegistrationFailedHTTPException
 from src.infrastructure.dependencies import DBDep, PaginationDep
 from src.shared.schemas.package_schemas import PackageCreateRequest, PackageResponse
 from src.infrastructure.tasks.tasks import register_package_task
@@ -38,7 +39,7 @@ async def get_package(package_id: int, db: DBDep):
     return await get_package_query(db=db, package_id=package_id)
 
 
-@router.post("", response_model=PackageResponse, summary="Отправка посылки")
+@router.post("", response_model=dict, summary="Отправка посылки")
 async def create_package(package_data: PackageCreateRequest = Body(openapi_examples={
                             "1": {
                                 "summary": "Малый короб",
@@ -70,7 +71,19 @@ async def create_package(package_data: PackageCreateRequest = Body(openapi_examp
                         }),
                          session_id: str = Cookie(default=None),
                         ):
+    try:
+        # Отправляем задачу на выполнение в Celery
+        task = register_package_task.apply_async(args=[package_data.model_dump(), session_id])
 
-    # Передаем данные и session_id в задачу Celery
-    register_package_task.delay(package_data.model_dump(), session_id)
-    return {"status": "queued"}
+        # Ожидание результата задачи
+        result = task.get(timeout=1)
+
+        if "package_id" not in result:
+            raise ValueError("Ошибка в результате выполнения задачи Celery.")
+
+        return {"status": "success", "package_id": result["package_id"]}
+
+    except Exception as e:
+        # Общая обработка ошибок
+        raise PackageRegistrationFailedHTTPException
+

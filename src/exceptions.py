@@ -61,6 +61,16 @@ class ObjectAlreadyExistsHTTPException(BaseHTTPException):
     detail = "Элемент уже существует"
 
 
+class PackageRegistrationFailedHTTPException(BaseHTTPException):
+    status_code = 500
+    detail = "Ошибка при регистрации посылки"
+
+
+class FetchingUSDRateHTTPException(BaseHTTPException):
+    status_code = 500
+    detail = "Ошибка обновления курса валют"
+
+
 class DatabaseConnectionHTTPException(BaseHTTPException):
     status_code = 500
     detail = "База данных временно недоступна"

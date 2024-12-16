@@ -9,6 +9,9 @@ celery_instance = Celery(
     include=["src.infrastructure.tasks.tasks"]
 )
 
+celery_instance.conf.update(
+    broker_connection_retry_on_startup=True,
+)
 
 # Настройка периодических задач (если потребуется в будущем)
 celery_instance.conf.beat_schedule = {

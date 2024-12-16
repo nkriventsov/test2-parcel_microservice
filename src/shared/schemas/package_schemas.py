@@ -10,14 +10,14 @@ class PackageCreateRequest(BaseModel):
 
 
 class PackageCreate(PackageCreateRequest):
-    id: int
+    id: int | None = Field(None, description="Идентификатор посылки")
     delivery_cost: float
     session_id: str
 
 
 class PackageResponse(BaseModel):
     id: int
-    type_name: str  # Имя типа, полученное из связи
+    type_name: str
     delivery_cost: Optional[float]
 
     model_config = ConfigDict(from_attributes=True)

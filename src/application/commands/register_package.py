@@ -60,6 +60,8 @@ async def register_package_command(package_data: dict, session_id: str, redis_ma
                 ),
             )
 
+            await db.commit()
+
         logger.info(f"Посылка зарегистрирована с расчетной стоимостью: {cost}")
 
         # Преобразуем ORM-объект в доменную модель до завершения контекста

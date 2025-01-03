@@ -8,3 +8,4 @@ src/infrastructure/db/migrations/script.py.mako
 
 .secrets.toml
 
+.qodo

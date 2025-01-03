@@ -1,15 +1,15 @@
 [development]
 # Настройки БД
-DB_HOST = "localhost"
-DB_PORT = 5453
+DB_HOST = "postgres"
+DB_PORT = 5432
 DB_NAME = "parcels"
 
 # Настройки Redis
-REDIS_HOST = "localhost"
-REDIS_PORT = 6739
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
 
 # Настройки RabbitMQ
-RABBITMQ_HOST = "localhost"
+RABBITMQ_HOST = "rabbitmq"
 RABBITMQ_PORT = 5672
 
 # Настройки внешнего API

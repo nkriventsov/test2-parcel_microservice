@@ -20,9 +20,11 @@ structlog = "^24.4.0"
 aiohttp = "^3.11.10"
 dynaconf = "^3.2.6"
 psycopg2-binary = "^2.9.10"
-celery = {version = "5.3.4", extras = ["sqlalchemy"]}
+celery = {extras = ["async", "sqlalchemy"], version = "^5.4.0"}
 kombu = "5.3.4"
 amqp = "5.1.1"
+gevent = "^24.11.1"
+flower = "^2.0.1"
 
 
 [tool.poetry.group.test.dependencies]

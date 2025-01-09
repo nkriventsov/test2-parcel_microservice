@@ -16,10 +16,17 @@ celery_instance.conf.update(
     result_serializer="json",
 )
 
+# Настройки логирования Celery
+celery_instance.conf.update(
+    worker_log_format="[%(asctime)s: %(levelname)s/%(processName)s] %(message)s",
+    worker_task_log_format="[%(asctime)s: %(levelname)s/%(processName)s] Task %(task_name)s[%(task_id)s] - %(message)s",
+    worker_redirect_stdouts_level="DEBUG",  # Уровень логирования
+)
+
 # Настройка периодических задач (если потребуется в будущем)
 celery_instance.conf.beat_schedule = {
     "update_exchange_rate_every_hour": {
         "task": "src.infrastructure.tasks.tasks.update_exchange_rate",
-        "schedule": 10.0,  # Каждые 3600 секунд (1 час)
+        "schedule": 3600.0,  # Каждые 3600 секунд (1 час)
     },
 }

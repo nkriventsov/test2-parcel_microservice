@@ -25,6 +25,7 @@ kombu = "5.3.4"
 amqp = "5.1.1"
 gevent = "^24.11.1"
 flower = "^2.0.1"
+aiomonitor = "^0.7.1"
 
 
 [tool.poetry.group.test.dependencies]

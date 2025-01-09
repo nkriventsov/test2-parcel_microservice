@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Body, Cookie, Query
-
+from loguru import logger
 from src.application.queries.get_package import get_package_query
 from src.application.queries.list_packages import list_packages_query
 from src.exceptions import PackageRegistrationFailedHTTPException
@@ -72,18 +72,23 @@ async def create_package(package_data: PackageCreateRequest = Body(openapi_examp
                          session_id: str = Cookie(default=None),
                         ):
     try:
+        logger.info(f"Полученные данные посылки: {package_data}")
+        logger.info(f"ID сессии: {session_id}")
         # Отправляем задачу на выполнение в Celery
-        task = register_package_task.apply_async(args=[package_data.model_dump(), session_id])
+        task = register_package_task.apply_async(args=[package_data.model_dump(), session_id], queue='celery')
 
         # Ожидание результата задачи
-        result = task.get(timeout=1)
+        result = task.get(timeout=10)
 
         if "package_id" not in result:
+            logger.error("Ошибка в результате выполнения задачи Celery: package_id not found")
             raise ValueError("Ошибка в результате выполнения задачи Celery.")
 
+        logger.info(f"Посылка успешно зарегистрирована с ID: {result['package_id']}")
         return {"status": "success", "package_id": result["package_id"]}
 
     except Exception as e:
+        logger.error(f"Ошибка в create_package: {str(e)}")
         # Общая обработка ошибок
         raise PackageRegistrationFailedHTTPException
 

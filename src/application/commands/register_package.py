@@ -19,17 +19,23 @@ async def register_package_command(package_data: dict, session_id: str, redis_ma
     5. Формирование результата.
     """
 
-    logger.info(f"Начата регистрация посылки с данными: {package_data}, session_id: {session_id}")
+    logger.debug(f"[register_package_command] Входные данные: package_data={package_data}, session_id={session_id}")
 
     try:
+        # Лог до валидации
+        logger.debug(f"[register_package_command] Валидация данных: {package_data}")
         # Валидация данных через Pydantic
         validated_data = PackageCreateRequest(**package_data)
 
         # Работа с Redis через контекстный менеджер
         async with redis_manager as redis_conn:
+            # Лог перед запросом курса валют
+            logger.debug("Перед запросом курса валют")
 
             # Получение курса валют
             exchange_rate = await redis_conn.get("rub_to_usd")
+
+            logger.debug(f"[register_package_command] Курс валют из Redis: {exchange_rate}")
 
             if not exchange_rate:
                 logger.warning("Курс валют отсутствует в Redis. Запуск обновления курса.")
@@ -43,7 +49,10 @@ async def register_package_command(package_data: dict, session_id: str, redis_ma
                 exchange_rate=float(exchange_rate),
             )
 
-            logger.info(f"Стоимость доставки рассчитана: {cost}")
+            logger.debug(f"[register_package_command] Рассчитанная стоимость доставки: {cost}")
+
+        # Лог перед сохранением в БД
+        logger.debug(f"[register_package_command] Создание пакета в БД")
 
         # Сохранение данных о посылке в PostgreSQL
         async with DBManager(session_factory=async_session_maker, redis_manager=redis_manager) as db:
@@ -67,6 +76,8 @@ async def register_package_command(package_data: dict, session_id: str, redis_ma
         # Преобразуем ORM-объект в доменную модель до завершения контекста
         package = db.package.mapper.map_to_domain_entity(created_package)
 
+        # Лог результата перед возвратом
+        logger.debug(f"[register_package_command] Преобразованный package: {package}")
         return {"package_id": package.id}
 
     except Exception as e:

@@ -9,9 +9,11 @@ services:
       - .:/app
     ports:
       - "8000:8000"
+      - "50102:50102"
     environment:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - LOG_LEVEL="DEBUG"
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,7 +75,7 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
     command: >
-      poetry run celery -A src.core.celery_app.celery_instance worker --loglevel=info
+      poetry run celery -A src.core.celery_app.celery_instance worker --loglevel=DEBUG --pool=gevent
     profiles:
       - dev
       - prod
@@ -93,14 +95,22 @@ services:
         condition: service_healthy
     networks:
       - app_network
-#    environment:
-#      - FLOWER_UNAUTHENTICATED_API=1
-#      - RABBITMQ_USER=${RABBITMQ_USER}
-#      - RABBITMQ_PASS=${RABBITMQ_PASS}
     command: >
-      sh -c "poetry run celery -A src.core.celery_app.celery_instance flower
-        --port=5555
-        --broker_api=http://guest:guest@rabbitmq:15672/api/"
+      sh -c "poetry run celery -A src.core.celery_app.celery_instance flower 
+      --port=5555 
+      --broker_api=http://mitmproxy:8080/api/ 
+      --loglevel=debug"
+    profiles:
+      - dev
+
+  mitmproxy:
+    image: mitmproxy/mitmproxy
+    container_name: mitmproxy_container
+    ports:
+      - "8080:8080" # Перехват запросов от Flower
+    networks:
+      - app_network
+    command: mitmdump --listen-port 8080 --mode reverse:http://rabbitmq:15672/
     profiles:
       - dev
 

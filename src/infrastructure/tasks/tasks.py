@@ -8,16 +8,15 @@ from src.core.config import settings
 from src.infrastructure.connectors.redis_connector import RedisManager
 
 
-@celery_instance.task(name="src.infrastructure.tasks.tasks.register_package")
+# @celery_instance.task(name="src.infrastructure.tasks.tasks.register_package")
 # def register_package_task(package_data: dict, session_id: str):
 #     """
-#     Синхронная обертка для асинхронного вызова register_package_command.
+#     Синхронная обертка для асинхронного вызова register_package_command - Вариант 1
 #     """
-#
+#     logger.info(f"Запуск задачи с данными посылки: {package_data}, session_id: {session_id}")
 #     try:
-#         # Создаем новый event loop для текущего потока
-#         loop = asyncio.new_event_loop()
-#         asyncio.set_event_loop(loop)
+#
+#         logger.info(f"Запуск задачи с данными посылки: {package_data}")
 #
 #         # Создаем RedisManager для этого цикла
 #         redis_manager = RedisManager(
@@ -26,12 +25,49 @@ from src.infrastructure.connectors.redis_connector import RedisManager
 #         )
 #
 #         # Запускаем команду регистрации посылки
-#         result = loop.run_until_complete(
-#             register_package_command(package_data, session_id, redis_manager)
+#         result = asyncio.run(register_package_command(package_data, session_id, redis_manager))
+#
+#         logger.info(f"Посылка успешно зарегистрирована: {result}")
+#
+#         return result
+#
+#     except Exception as e:
+#         logger.error(f"Ошибка в Celery задаче регистрации посылки: {str(e)}")
+#         raise
+
+
+# @celery_instance.task(name="src.infrastructure.tasks.tasks.register_package")
+# def register_package_task(package_data: dict, session_id: str):
+#     """
+#     Синхронная обертка для асинхронного вызова register_package_command - Вариант 2
+#     """
+#     try:
+#         logger.info(f"Начало задачи с данными посылки: {package_data}, session_id: {session_id}")
+#
+#         redis_manager = RedisManager(
+#             host=settings.REDIS_HOST,
+#             port=settings.REDIS_PORT,
 #         )
 #
-#         logger.info(f"Посылка зарегистрирована: {result}")
+#         # Проверяем, существует ли уже цикл событий
+#         try:
+#             loop = asyncio.get_event_loop()
+#             if loop.is_running():
+#                 # Если цикл уже запущен, создаем новый
+#                 logger.debug("Цикл событий уже запущен, создаем новый цикл")
+#                 loop = asyncio.new_event_loop()
+#                 asyncio.set_event_loop(loop)
+#         except RuntimeError:
+#             # Если цикл не существует, создаем новый
+#             logger.debug("Цикл событий не существует, создаем новый цикл")
+#             loop = asyncio.new_event_loop()
+#             asyncio.set_event_loop(loop)
 #
+#         # Запускаем корутину в цикле событий
+#         logger.info("Запуск корутины register_package_command")
+#         result = loop.run_until_complete(register_package_command(package_data, session_id, redis_manager))
+#
+#         logger.info(f"Посылка успешно зарегистрирована: {result}")
 #         return result
 #
 #     except Exception as e:
@@ -39,31 +75,45 @@ from src.infrastructure.connectors.redis_connector import RedisManager
 #         raise
 #
 #     finally:
-#         loop.close()
-async def register_package_task(self, package_data: dict, session_id: str):
+#         # Закрываем цикл событий, если он был создан в этой функции
+#         try:
+#             logger.debug("Закрытие цикла событий")
+#             loop.close()
+#         except Exception as close_error:
+#             logger.warning(f"Ошибка при закрытии цикла событий: {close_error}")
+
+
+@celery_instance.task(name="src.infrastructure.tasks.tasks.register_package")
+async def register_package_task(package_data: dict, session_id: str):
     """
-    Асинхронная задача для регистрации посылки.
+    Асинхронная Celery-задача для регистрации посылки.
     """
     try:
-        # Создаем RedisManager
+        logger.debug(f"[register_package_task] Входные данные: package_data={package_data}, session_id={session_id}")
+
         redis_manager = RedisManager(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
         )
 
-        # Выполняем команду регистрации
-        result = await register_package_command(package_data, session_id, redis_manager)
+        # Лог до вызова асинхронной функции
+        logger.debug("[register_package_task] Перед вызовом register_package_command")
 
-        logger.info(f"Посылка зарегистрирована: {result}")
+        # Вызываем асинхронную команду регистрации
+        result = await register_package_command(package_data, session_id, redis_manager)
+        logger.debug(f"[register_package_task] Результат register_package_command: {result}")
         return result
 
     except Exception as e:
-        logger.error(f"Ошибка в Celery задаче регистрации посылки: {str(e)}")
+        logger.error(f"[register_package_task] Ошибка: {e}")
         raise
 
 
-@celery_instance.task(name="src.infrastructure.tasks.tasks.update_exchange_rate")
+# @celery_instance.task(name="src.infrastructure.tasks.tasks.update_exchange_rate")
 # def update_exchange_rate_task():
+#     """
+#     Синхронная задача для обновления курса валют.
+#     """
 #     try:
 #
 #         loop = asyncio.new_event_loop()
@@ -78,6 +128,9 @@ async def register_package_task(self, package_data: dict, session_id: str):
 #
 #     finally:
 #         loop.close()
+
+
+@celery_instance.task(name="src.infrastructure.tasks.tasks.update_exchange_rate")
 async def update_exchange_rate_task(self):
     """
     Асинхронная задача для обновления курса валют.

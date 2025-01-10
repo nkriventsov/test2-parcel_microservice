@@ -25,15 +25,15 @@ app.include_router(api_router)
 
 
 # Точка запуска приложения
-if __name__ == "__main__":
-    # Создаем новый цикл событий
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    logger.debug("Инициализация aiomonitor...")
-    # Запускаем мониторинг
-    with aiomonitor.start_monitor(loop=loop, host="0.0.0.0", port=50102):
+def run_with_aiomonitor():
+    loop = asyncio.get_event_loop()
+    logger.info("Запуск aiomonitor на 0.0.0.0:50101")
+    with aiomonitor.start_monitor(loop=loop, host="0.0.0.0", port=50101):
         logger.debug("aiomonitor запущен, передаем управление uvicorn.")
-        # Передаем созданный цикл событий в uvicorn.run
-        uvicorn.run("main:app", reload=True, workers=5)
+        uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+# Точка запуска приложения
+if __name__ == "__main__":
+    run_with_aiomonitor()
         # uvicorn.run("main:app", host="0.0.0.0", port=settings.APP_PORT, reload=True, workers=5)

@@ -30,14 +30,6 @@ class Settings(Dynaconf):
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
 
 
-    @property
-    def SYNC_DATABASE_URL(self):
-        return (
-            f"postgresql://{self.DB_USER}:{self.DB_PASS}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-        )
-
-
 # Создаём объект настроек
 settings = Settings(
     settings_files=["settings.dev.toml", ".secrets.toml"],

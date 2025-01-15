@@ -9,7 +9,6 @@ services:
       - .:/app
     ports:
       - "8000:8000"
-      - "50101:50101"
     environment:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}

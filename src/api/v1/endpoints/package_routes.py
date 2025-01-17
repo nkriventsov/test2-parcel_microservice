@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Body, Cookie, Query
 from loguru import logger
 from src.application.queries.get_package import get_package_query
@@ -71,6 +73,7 @@ async def create_package(package_data: PackageCreateRequest = Body(openapi_examp
                         }),
                          session_id: str = Cookie(default=None),
                         ):
+    logger.debug(f"[create_package] Цикл событий: {asyncio.get_running_loop()}")
     try:
         logger.info(f"Полученные данные посылки: {package_data}")
         logger.info(f"ID сессии: {session_id}")

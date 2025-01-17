@@ -1,3 +1,5 @@
+import asyncio
+
 from loguru import logger
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
@@ -16,6 +18,7 @@ class PackageRepository(BaseRepository):
         """
         Создать пакет и одновременно получить связанные данные из таблицы package_types.
         """
+        logger.debug(f"[create_with_type] Цикл событий: {asyncio.get_running_loop()}")
         try:
             logger.debug(f"[create_with_type] Входные данные package_data: {package_data}")
 

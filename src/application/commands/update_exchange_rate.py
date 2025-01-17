@@ -1,3 +1,5 @@
+import asyncio
+
 from loguru import logger
 from src.infrastructure.connectors.init import redis_manager
 from src.infrastructure.external.currency_service import fetch_exchange_rate
@@ -7,7 +9,7 @@ async def update_exchange_rate_command():
     """
     Периодическая задача обновления курса валют в Redis.
     """
-
+    logger.debug(f"[update_exchange_rate_command] Цикл событий: {asyncio.get_running_loop()}")
     logger.info("Начало обновления курса валют.")
 
     try:

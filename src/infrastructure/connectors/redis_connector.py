@@ -1,3 +1,5 @@
+import asyncio
+
 from loguru import logger
 import redis.asyncio as redis
 
@@ -19,6 +21,7 @@ class RedisManager:
     async def connect(self):
         """Подключение к Redis."""
         logger.info(f"Начинаю подключение к Redis host={self.host}, port={self.port}")
+        logger.debug(f"[RedisManager.connect] Цикл событий: {asyncio.get_running_loop()}")
         try:
             self._redis = redis.from_url(f"redis://{self.host}:{self.port}")
             # Проверяем соединение
@@ -30,6 +33,7 @@ class RedisManager:
 
     async def _ensure_connected(self):
         """Проверка и повторное подключение к Redis при необходимости."""
+        logger.debug(f"[RedisManager._ensure_connected] Цикл событий: {asyncio.get_running_loop()}")
         if self._redis is None or not await self._redis.ping():
             logger.warning("Соединение с Redis потеряно. Повторное подключение...")
             await self.connect()
@@ -41,6 +45,7 @@ class RedisManager:
         :param value: Значение для сохранения.
         :param expire: Время жизни ключа в секундах (опционально).
         """
+        logger.debug(f"[RedisManager.set] Цикл событий: {asyncio.get_running_loop()}")
         await self._ensure_connected()
         try:
             if expire:
@@ -58,6 +63,7 @@ class RedisManager:
         :param key: Ключ для получения значения.
         :return: Значение, сохраненное по ключу, или None, если ключ не существует.
         """
+        logger.debug(f"[RedisManager.get] Цикл событий: {asyncio.get_running_loop()}")
         await self._ensure_connected()
         try:
             value = await self._redis.get(key)
@@ -72,6 +78,7 @@ class RedisManager:
         Удалить ключ из Redis.
         :param key: Ключ для удаления.
         """
+        logger.debug(f"[RedisManager.delete] Цикл событий: {asyncio.get_running_loop()}")
         await self._ensure_connected()
         try:
             await self._redis.delete(key)
@@ -82,6 +89,7 @@ class RedisManager:
 
     async def close(self):
         """Закрыть подключение к Redis."""
+        logger.debug(f"[RedisManager.close] Цикл событий: {asyncio.get_running_loop()}")
         if self._redis:
             try:
                 await self._redis.close()

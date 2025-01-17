@@ -1,3 +1,5 @@
+import asyncio
+
 import aiohttp
 from loguru import logger
 
@@ -9,6 +11,7 @@ import json
 
 async def fetch_exchange_rate(redis_manager: RedisManager) -> float:
     """Получение курса валют с кэшированием в Redis."""
+    logger.debug(f"[fetch_exchange_rate] Цикл событий: {asyncio.get_running_loop()}")
     # Попытка получить курс валюты из Redis
     cached_rate = await redis_manager.get("rub_to_usd")
     if cached_rate:
@@ -19,7 +22,10 @@ async def fetch_exchange_rate(redis_manager: RedisManager) -> float:
     logger.info("Курс валют отсутствует в кэше, запрос к API...")
 
     async with aiohttp.ClientSession() as session:
+        logger.debug(f"[aiohttp.ClientSession] Цикл событий: {asyncio.get_running_loop()}")
+
         async with session.get(settings.CURRENCY_API_HOST) as response:
+            logger.debug(f"[session.get(settings.CURRENCY_API_HOST)] Цикл событий: {asyncio.get_running_loop()}")
 
             if response.status == 200:
                 text = await response.text()  # Получить текстовый контент

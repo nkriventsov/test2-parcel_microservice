@@ -1,3 +1,5 @@
+import asyncio
+
 from loguru import logger
 from src.infrastructure.connectors.redis_connector import RedisManager
 from src.infrastructure.repositories.package_repository import PackageRepository
@@ -16,6 +18,7 @@ class DBManager:
     # Асинхронный метод для входа в контекстный менеджер (использование with ... as ...).
     async def __aenter__(self):
         # Создаем сессию базы данных, используя session_factory.
+        logger.debug(f"[DBManager.__aenter__] Цикл событий: {asyncio.get_running_loop()}")
         try:
             self.session = self.session_factory()
             logger.info("Сессия базы данных успешно создана")
@@ -33,6 +36,7 @@ class DBManager:
 
     # Асинхронный метод для выхода из контекстного менеджера.
     async def __aexit__(self, *args):
+        logger.debug(f"[DBManager.__aexit__] Цикл событий: {asyncio.get_running_loop()}")
         try:
             # Откатываем все незавершенные изменения, чтобы база данных не оставалась в непоследовательном состоянии.
             await self.session.rollback()
@@ -48,6 +52,7 @@ class DBManager:
 
     # Асинхронный метод для фиксации изменений в базе данных.
     async def commit(self):
+        logger.debug(f"[DBManager.commit] Цикл событий: {asyncio.get_running_loop()}")
         try:
             await self.session.commit()
             logger.info("Изменения в базе данных успешно зафиксированы")

@@ -1,8 +1,10 @@
+import asyncio
 from typing import Annotated
 
 from fastapi import Depends, Query
 from pydantic import BaseModel
 
+from loguru import logger
 from src.infrastructure.connectors.init import redis_manager
 from src.infrastructure.db.database import async_session_maker
 from src.infrastructure.db.db_manager import DBManager
@@ -25,9 +27,11 @@ def get_db_manager():
 
 # Асинхронная генераторная функция, которая предоставляет экземпляр DBManager в асинхронном контекстном менеджере.
 async def get_db():
+    logger.debug(f"[get_db] Цикл событий: {asyncio.get_running_loop()}")
     # Создаем экземпляр DBManager, используя контекстный менеджер,
     # чтобы гарантировать корректное создание и закрытие сессии.
     async with get_db_manager() as db:
+        logger.debug(f"[get_db_manager] Цикл событий: {asyncio.get_running_loop()}")
         # Используем yield, чтобы вернуть объект db (экземпляр DBManager)
         # и затем автоматически закрыть сессию после использования.
         yield db

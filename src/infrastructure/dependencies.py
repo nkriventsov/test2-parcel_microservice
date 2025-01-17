@@ -27,11 +27,11 @@ def get_db_manager():
 
 # Асинхронная генераторная функция, которая предоставляет экземпляр DBManager в асинхронном контекстном менеджере.
 async def get_db():
-    logger.debug(f"[get_db] Цикл событий: {asyncio.get_running_loop()}")
+    logger.debug(f"[get_db] Цикл событий: ID={id(asyncio.get_running_loop())} | Объект={asyncio.get_running_loop()}")
     # Создаем экземпляр DBManager, используя контекстный менеджер,
     # чтобы гарантировать корректное создание и закрытие сессии.
     async with get_db_manager() as db:
-        logger.debug(f"[get_db_manager] Цикл событий: {asyncio.get_running_loop()}")
+        logger.debug(f"[get_db_manager] Цикл событий: ID={id(asyncio.get_running_loop())} | Объект={asyncio.get_running_loop()}")
         # Используем yield, чтобы вернуть объект db (экземпляр DBManager)
         # и затем автоматически закрыть сессию после использования.
         yield db

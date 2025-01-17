@@ -24,8 +24,9 @@ celery_instance.conf.update(
 )
 
 # # Настройка пула и режима выполнения задач
-# celery_instance.conf.task_always_eager = False
-# celery_instance.conf.worker_pool = "gevent"  # Используем gevent для асинхронного выполнения
+celery_instance.conf.task_always_eager = False
+celery_instance.conf.worker_pool = "gevent"   # Используем gevent для асинхронного выполнения
+
 
 # Настройка периодических задач (если потребуется в будущем)
 celery_instance.conf.beat_schedule = {

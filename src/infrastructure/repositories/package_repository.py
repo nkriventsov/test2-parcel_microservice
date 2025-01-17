@@ -18,7 +18,7 @@ class PackageRepository(BaseRepository):
         """
         Создать пакет и одновременно получить связанные данные из таблицы package_types.
         """
-        logger.debug(f"[create_with_type] Цикл событий: {asyncio.get_running_loop()}")
+        logger.debug(f"[create_with_type] Цикл событий: ID={id(asyncio.get_running_loop())} | Объект={asyncio.get_running_loop()}")
         try:
             logger.debug(f"[create_with_type] Входные данные package_data: {package_data}")
 

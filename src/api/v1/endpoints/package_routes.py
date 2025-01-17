@@ -73,7 +73,7 @@ async def create_package(package_data: PackageCreateRequest = Body(openapi_examp
                         }),
                          session_id: str = Cookie(default=None),
                         ):
-    logger.debug(f"[create_package] Цикл событий: {asyncio.get_running_loop()}")
+    logger.debug(f"[create_package] Цикл событий: ID={id(asyncio.get_running_loop())} | Объект={asyncio.get_running_loop()}")
     try:
         logger.info(f"Полученные данные посылки: {package_data}")
         logger.info(f"ID сессии: {session_id}")

@@ -11,10 +11,12 @@ from src.infrastructure.connectors.redis_connector import RedisManager
 
 
 @celery_instance.task(name="src.infrastructure.tasks.tasks.register_package")
-def register_package_task(package_data: dict, session_id: str):
+async def register_package_task(package_data: dict, session_id: str):
     """
     Синхронная обертка для асинхронного вызова register_package_command - Вариант 2
     """
+    logger.debug(f"[register_package_task] Цикл событий: ID={id(asyncio.get_running_loop())} | Объект={asyncio.get_running_loop()}")
+
     try:
         logger.info(f"Начало задачи с данными посылки: {package_data}, session_id: {session_id}")
 
@@ -24,12 +26,12 @@ def register_package_task(package_data: dict, session_id: str):
         )
 
 
+        # Вызов асинхронной команды через async_to_sync
         result = async_to_sync(register_package_command)(
             package_data=package_data,
             session_id=session_id,
             redis_manager=redis_manager,
         )
-
 
         logger.info(f"Посылка успешно зарегистрирована: {result}")
         return result

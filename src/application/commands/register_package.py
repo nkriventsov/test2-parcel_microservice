@@ -23,7 +23,7 @@ async def register_package_command(package_data: dict, session_id: str, redis_ma
 
     logger.debug(f"[register_package_command] Входные данные: package_data={package_data}, session_id={session_id}")
 
-    logger.debug(f"[register_package_command] Цикл событий: {asyncio.get_running_loop()}")
+    logger.debug(f"[register_package_command] Цикл событий: ID={id(asyncio.get_running_loop())} | Объект={asyncio.get_running_loop()}")
     try:
         # Лог до валидации
         logger.debug(f"[register_package_command] Валидация данных: {package_data}")
@@ -59,7 +59,7 @@ async def register_package_command(package_data: dict, session_id: str, redis_ma
 
         # Сохранение данных о посылке в PostgreSQL
         async with DBManager(session_factory=async_session_maker, redis_manager=redis_manager) as db:
-            logger.debug(f"[register_package_command] Цикл событий: {asyncio.get_running_loop()}")
+            logger.debug(f"[register_package_command] Цикл событий: ID={id(asyncio.get_running_loop())} | Объект={asyncio.get_running_loop()}")
             # Создаём пакет с загрузкой связанных данных
             created_package = await db.package.create_with_type(
                 session=db.session,

@@ -9,7 +9,7 @@ async def update_exchange_rate_command():
     """
     Периодическая задача обновления курса валют в Redis.
     """
-    logger.debug(f"[update_exchange_rate_command] Цикл событий: {asyncio.get_running_loop()}")
+    logger.debug(f"[update_exchange_rate_command] Цикл событий: ID={id(asyncio.get_running_loop())} | Объект={asyncio.get_running_loop()}")
     logger.info("Начало обновления курса валют.")
 
     try:

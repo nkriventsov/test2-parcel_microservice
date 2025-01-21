@@ -17,7 +17,11 @@ class PackageCreate(PackageCreateRequest):
 
 class PackageResponse(BaseModel):
     id: int
-    type_name: str
+    name: str
+    weight: float
+    type_id: int
+    # type_name: str
+    content_value: float
     delivery_cost: Optional[float]
 
     model_config = ConfigDict(from_attributes=True)

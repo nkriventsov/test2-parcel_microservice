@@ -8,7 +8,7 @@ async def get_package_query(db: DBDep, package_id: int):
     logger.info(f"Запрос получения данных посылки с ID: {package_id}")
 
     try:
-        package = await db.package.get_one(package_id)
+        package = await db.package.get_one(id=package_id)
         logger.info(f"Данные посылки получены: {package}")
 
         if not package:

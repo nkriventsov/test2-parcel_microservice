@@ -23,9 +23,9 @@ celery_instance.conf.update(
     worker_redirect_stdouts_level="DEBUG",  # Уровень логирования
 )
 
-# # Настройка пула и режима выполнения задач
-celery_instance.conf.task_always_eager = False
-celery_instance.conf.worker_pool = "gevent"   # Используем gevent для асинхронного выполнения
+# # # Настройка пула и режима выполнения задач
+# celery_instance.conf.task_always_eager = False
+# celery_instance.conf.worker_pool = "gevent"   # Используем gevent для асинхронного выполнения
 
 
 # Настройка периодических задач (если потребуется в будущем)

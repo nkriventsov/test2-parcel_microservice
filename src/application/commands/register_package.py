@@ -6,7 +6,7 @@ from src.application.commands.update_exchange_rate import update_exchange_rate_c
 from src.exceptions import PackageRegistrationFailedHTTPException
 from src.infrastructure.connectors.redis_connector import RedisManager
 from src.infrastructure.db.db_manager import DBManager
-from src.infrastructure.db.database import async_session_maker
+from src.infrastructure.db.database import get_session_maker
 from src.domain.services.cost_calculator import calculate_delivery_cost
 from src.shared.schemas.package_schemas import PackageCreateRequest, PackageCreate
 
@@ -57,8 +57,11 @@ async def register_package_command(package_data: dict, session_id: str, redis_ma
         # Лог перед сохранением в БД
         logger.debug(f"[register_package_command] Создание пакета в БД")
 
+        # Создаём фабрику для session maker
+        session_factory = get_session_maker()
+
         # Сохранение данных о посылке в PostgreSQL
-        async with DBManager(session_factory=async_session_maker, redis_manager=redis_manager) as db:
+        async with DBManager(session_factory=session_factory, redis_manager=redis_manager) as db:
             logger.debug(f"[register_package_command] Цикл событий: ID={id(asyncio.get_running_loop())} | Объект={asyncio.get_running_loop()}")
             # Создаём пакет с загрузкой связанных данных
             created_package = await db.package.create_with_type(

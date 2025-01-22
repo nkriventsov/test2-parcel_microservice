@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Cookie, Query
 from loguru import logger
 from src.application.queries.get_package import get_package_query
 from src.application.queries.list_packages import list_packages_query
-from src.exceptions import PackageRegistrationFailedHTTPException
+from src.exceptions import PackageRegistrationFailedHTTPException, NoAccessTokenHTTPException
 from src.infrastructure.dependencies import DBDep, PaginationDep
 from src.shared.schemas.package_schemas import PackageCreateRequest, PackageResponse
 from src.infrastructure.tasks.tasks import register_package_task
@@ -36,9 +36,12 @@ async def get_packages(
     summary="Данные посылки",
     description="Получение данных о посылке по ID (Retrieve package data by ID)"
 )
-async def get_package(package_id: int, db: DBDep):
+async def get_package(package_id: int, db: DBDep, session_id: str = Cookie(None)):
 
-    return await get_package_query(db=db, package_id=package_id)
+    if not session_id:
+        raise NoAccessTokenHTTPException
+
+    return await get_package_query(db=db, package_id=package_id, session_id=session_id)
 
 
 @router.post("", response_model=dict, summary="Отправка посылки")

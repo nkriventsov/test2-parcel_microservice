@@ -1,14 +1,11 @@
 import asyncio
 from loguru import logger
-from asgiref.sync import async_to_sync
 
 from src.application.commands.register_package import register_package_command
 from src.application.commands.update_exchange_rate import update_exchange_rate_command
 from src.core.celery_app import celery_instance
 from src.core.config import settings
-from src.domain.models import PackageOrm
 from src.infrastructure.connectors.redis_connector import RedisManager
-from src.infrastructure.db.database import get_session_maker
 
 
 @celery_instance.task(name="src.infrastructure.tasks.tasks.register_package")
@@ -29,13 +26,6 @@ def register_package_task(package_data: dict, session_id: str):
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
         )
-
-        # # Вызов асинхронной команды через async_to_sync
-        # result = async_to_sync(register_package_command)(
-        #     package_data=package_data,
-        #     session_id=session_id,
-        #     redis_manager=redis_manager,
-        # )
 
         def sync_register_package():
             async def wrapped():
@@ -62,19 +52,18 @@ def register_package_task(package_data: dict, session_id: str):
 @celery_instance.task(name="src.infrastructure.tasks.tasks.update_exchange_rate")
 def update_exchange_rate_task():
     """
-    Синхронная задача для обновления курса валют.
+    Celery задача для обновления курса валют раз в час.
     """
     try:
 
-        loop = asyncio.new_event_loop()
+        logger.info("Начало выполнения задачи обновления курса валют.")
 
-        asyncio.set_event_loop(loop)
+        # Вызов асинхронной команды через asyncio.run
+        result = asyncio.run(update_exchange_rate_command())
 
-        loop.run_until_complete(update_exchange_rate_command())
+        logger.info(f"Курс валют успешно обновлён через Celery задачу: {result}")
+        return result
 
     except Exception as e:
-        logger.error(f"Ошибка обновления курса валют: {e}")
+        logger.error(f"Ошибка в Celery задаче обновления курса валют: {e}")
         raise
-
-    finally:
-        loop.close()

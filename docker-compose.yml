@@ -79,6 +79,30 @@ services:
       - dev
       - prod
 
+  # Контейнер - Celery Beat (Dev и Prod)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_beat_container
+    volumes:
+      - .:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+    command: >
+      poetry run celery -A src.core.celery_app.celery_instance beat --loglevel=DEBUG
+    profiles:
+      - dev
+      - prod
+
   # Контейнер - Flower (только Dev)
   flower:
     build:

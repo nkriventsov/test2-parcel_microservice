@@ -16,9 +16,7 @@ async def update_exchange_rate_command():
         await redis_manager.connect()
 
         rate = await fetch_exchange_rate(redis_manager)
-        logger.info(f"Курс валют успешно получен: {rate}")
 
-        await redis_manager.set("rub_to_usd", rate, expire=3600)
         logger.info(f"Курс валют обновлен: {rate}")
 
         return {"status": "updated", "rate": rate}

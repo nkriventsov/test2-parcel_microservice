@@ -21,14 +21,28 @@ async def get_packages(
     has_delivery_cost: bool | None = Query(default=None),
 ):
 
-    return await list_packages_query(
-        db=db,
-        session_id=session_id,
-        pagination=pagination,
-        type_id=type_id,
-        has_delivery_cost=has_delivery_cost,
+    logger.info(
+        f"Получен запрос списка посылок: session_id={session_id}, "
+        f"pagination={pagination}, type_id={type_id}, has_delivery_cost={has_delivery_cost}"
     )
 
+    try:
+
+        result =  await list_packages_query(
+            db=db,
+            session_id=session_id,
+            pagination=pagination,
+            type_id=type_id,
+            has_delivery_cost=has_delivery_cost,
+        )
+
+        logger.info(f"Результат запроса: {result}")
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Ошибка при обработке запроса /my_packages: {e}")
+        raise
 
 @router.get(
     "/{package_id}",

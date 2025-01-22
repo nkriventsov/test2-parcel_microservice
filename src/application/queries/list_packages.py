@@ -28,11 +28,13 @@ async def list_packages_query(
 
         per_page = pagination.per_page or 5
 
+        logger.debug(f"Pagination params: page={pagination.page}, per_page={per_page}")
+
         packages = await db.package.get_filtered(*filters,
                                                  limit=pagination.per_page,
                                                  offset=(pagination.page - 1) * per_page)
 
-        logger.info(f"Возвращено {len(packages)} посылок.")
+        logger.info(f"Найдено {len(packages)} посылок: {packages}")
 
         return packages
 

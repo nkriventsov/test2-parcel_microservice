@@ -2,6 +2,7 @@ from sqlalchemy import select, insert, update, delete
 from pydantic import BaseModel
 from typing import List, Optional, Type
 from sqlalchemy.exc import NoResultFound
+from loguru import logger
 
 from src.exceptions import ObjectNotFoundException
 from src.infrastructure.repositories.mappers.base import DataMapper
@@ -15,19 +16,38 @@ class BaseRepository:
         self.session = session
 
     async def get_filtered(self, *filter, limit=None, offset=None, **filter_by):
+
+        logger.debug(f"Фильтры для get_filtered: filter={filter}, filter_by={filter_by}, "
+                     f"limit={limit}, offset={offset}")
+
         query = (
             select(self.model)
             .filter(*filter)
             .filter_by(**filter_by)
         )
+
         if limit is not None:
             query = query.limit(limit)
         if offset is not None:
             query = query.offset(offset)
 
-        result = await self.session.execute(query)
+        logger.debug(f"Сформированный SQL-запрос: {query}")
 
-        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
+        try:
+
+            result = await self.session.execute(query)
+            models = result.scalars().all()
+
+            logger.debug(f"Результат SQL-запроса: {models}")
+
+            mapped_entities = [self.mapper.map_to_domain_entity(model) for model in models]
+            logger.debug(f"Маппинг данных в доменные сущности: {mapped_entities}")
+
+            return mapped_entities
+
+        except Exception as e:
+            logger.error(f"Ошибка при выполнении get_filtered: {e}")
+            raise
 
     async def get_all(self, *args, **kwargs):
         return await self.get_filtered()

@@ -13,6 +13,8 @@ async def update_exchange_rate_command():
     logger.info("Начало обновления курса валют.")
 
     try:
+        logger.debug(f"RedisManager instance: {redis_manager}")
+
         await redis_manager.connect()
 
         rate = await fetch_exchange_rate(redis_manager)

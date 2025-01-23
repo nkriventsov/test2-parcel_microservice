@@ -10,6 +10,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - ENV_FOR_DYNACONF=development
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
       - LOG_LEVEL="DEBUG"
@@ -49,10 +50,13 @@ services:
         condition: service_healthy
     networks:
       - app_network
+    environment:
+      - ENV_FOR_DYNACONF=production
     profiles:
       - prod
     command: >
-      poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4
+      sh -c "poetry run alembic upgrade head &&
+             poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4"
 
 
   # Контейнер - Celery Worker (Dev и Prod)
@@ -71,6 +75,7 @@ services:
     networks:
       - app_network
     environment:
+      - ENV_FOR_DYNACONF=development
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
     command: >
@@ -95,6 +100,7 @@ services:
     networks:
       - app_network
     environment:
+      - ENV_FOR_DYNACONF=development
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
     command: >
@@ -118,6 +124,8 @@ services:
         condition: service_healthy
     networks:
       - app_network
+    environment:
+      - ENV_FOR_DYNACONF=development
     command: >
       sh -c "poetry run celery -A src.core.celery_app.celery_instance flower 
       --port=5555 
@@ -136,31 +144,6 @@ services:
     command: mitmdump --listen-port 8080 --mode reverse:http://rabbitmq:15672/
     profiles:
       - dev
-
-  # Контейнер - Test
-  test:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: test_container
-    volumes:
-      - .:/app
-    environment:
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}
-      - RABBITMQ_USER=${RABBITMQ_USER}
-      - RABBITMQ_PASS=${RABBITMQ_PASS}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - app_network
-    command: ["poetry", "run", "pytest", "tests"]
 
   # Контейнер - PostgreSQL
   postgres:

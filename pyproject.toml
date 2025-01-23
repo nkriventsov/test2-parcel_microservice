@@ -27,6 +27,7 @@ gevent = "^24.11.1"
 flower = "^2.0.1"
 aiomonitor = "^0.7.1"
 asgiref = "^3.8.1"
+prometheus-fastapi-instrumentator = "^7.0.2"
 
 
 [tool.poetry.group.test.dependencies]

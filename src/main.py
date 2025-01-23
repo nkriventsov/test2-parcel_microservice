@@ -3,12 +3,12 @@ from pathlib import Path
 
 from fastapi import FastAPI
 import uvicorn
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # чтобы main.py "видел" директорию "src"
 sys.path.append(str(Path(__file__).parent.parent))
 
 
-from src.core.logger import logger
 from src.api import api_router
 from src.infrastructure.middleware.session import add_session_id_to_cookie
 
@@ -20,6 +20,9 @@ app.middleware("http")(add_session_id_to_cookie)
 
 # Подключение маршрутов
 app.include_router(api_router)
+
+# Подключение метрик для Prometheus
+Instrumentator().instrument(app).expose(app)
 
 
 # Точка запуска приложения

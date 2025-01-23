@@ -8,8 +8,10 @@ src/infrastructure/db/migrations/script.py.mako
 
 .secrets.toml
 
-.qodo
+.qodo/
 
 celerybeat-schedule
 
 .coverage
+
+prometheus_data/

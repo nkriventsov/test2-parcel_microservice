@@ -1,6 +1,6 @@
-from sqlalchemy import select, insert, update, delete
+from sqlalchemy import select, delete
 from pydantic import BaseModel
-from typing import List, Optional, Type
+from typing import Optional, Type
 from sqlalchemy.exc import NoResultFound
 from loguru import logger
 

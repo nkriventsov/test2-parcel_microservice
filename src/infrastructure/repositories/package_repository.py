@@ -44,7 +44,7 @@ class PackageRepository(BaseRepository):
 
             logger.debug(f"[create_with_type] Результат ORM-запроса: {package_with_type}")
 
-            # Лаконичная трансформация ORM-объекта в словарь
+            # Трансформация ORM-объекта в словарь
             package_dict = {c.key: getattr(package_with_type, c.key) for c in
                             inspect(package_with_type).mapper.column_attrs}
 

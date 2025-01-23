@@ -24,5 +24,8 @@ app.include_router(api_router)
 
 # Точка запуска приложения
 if __name__ == "__main__":
+    # Для запуска в dev режиме
     uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
-    # uvicorn.run("main:app", host="0.0.0.0", port=settings.APP_PORT, reload=True, workers=5)
+
+    # # Для запуска в prod режиме - прописано командой в docker-compose
+    # uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, workers=5)

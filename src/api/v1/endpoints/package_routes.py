@@ -57,6 +57,7 @@ async def get_packages(
 async def get_package(package_id: int, db: DBDep, session_id: str = Cookie(None)):
 
     if not session_id:
+        logger.warning("Попытка доступа к /my_packages без session_id")
         raise NoAccessTokenHTTPException
 
     return await get_package_query(db=db, package_id=package_id, session_id=session_id)

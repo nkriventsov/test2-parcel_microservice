@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 
 from src.api.v1.endpoints.fx_rate_upd import fx_rate
+from src.api.v1.endpoints.package_routes import router as package_router
 from src.infrastructure.connectors.redis_connector import RedisManager
 
 
@@ -17,6 +18,7 @@ def test_client():
 
     app = FastAPI()
     app.include_router(fx_rate)
+    app.include_router(package_router)
     return TestClient(app)
 
 
@@ -51,14 +53,50 @@ def mock_fetch_exchange_rate():
 
 
 @pytest.fixture
-def monkeypatch_fetch_exchange_rate(monkeypatch, mock_fetch_exchange_rate):
+def mock_list_packages_query():
     """
-    Патчит функцию fetch_exchange_rate, подменяя её на мок-объект для тестирования.
+    Создает мок-объект для функции list_packages_query, возвращающий фиктивный список посылок.
 
-    :param monkeypatch: Фикстура для изменения атрибутов и модулей во время тестов.
-    :param mock_fetch_exchange_rate: Мок-объект для функции fetch_exchange_rate.
+    :return: AsyncMock с фиктивным списком посылок
     """
-    monkeypatch.setattr(
-        "src.infrastructure.external.currency_service.fetch_exchange_rate",
-        mock_fetch_exchange_rate,
+    async_mock = AsyncMock(
+        return_value=[
+            {
+                "id": 1,
+                "name": "Малый короб",
+                "weight": 0.5,
+                "type_id": 1,
+                "content_value": 100,
+                "delivery_cost": 50.0,
+            },
+            {
+                "id": 2,
+                "name": "Средний короб",
+                "weight": 1.5,
+                "type_id": 2,
+                "content_value": 200,
+                "delivery_cost": 75.0,
+            },
+        ]
     )
+    return async_mock
+
+
+@pytest.fixture
+def mock_get_package_query():
+    """
+    Создает мок-объект для функции get_package_query, возвращающий фиктивные данные посылки.
+
+    :return: AsyncMock с фиктивными данными посылки
+    """
+    async_mock = AsyncMock(
+        return_value={
+            "id": 1,
+            "name": "Малый короб",
+            "weight": 0.5,
+            "type_id": 1,
+            "content_value": 100,
+            "delivery_cost": 50.0,
+        }
+    )
+    return async_mock

@@ -26,6 +26,10 @@ async def get_packages(
         f"pagination={pagination}, type_id={type_id}, has_delivery_cost={has_delivery_cost}"
     )
 
+    if not session_id:
+        logger.warning("Попытка доступа к /my_packages без session_id")
+        raise NoAccessTokenHTTPException
+
     try:
 
         result =  await list_packages_query(

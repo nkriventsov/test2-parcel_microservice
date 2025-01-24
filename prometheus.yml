@@ -3,18 +3,11 @@ global:
 
 scrape_configs:
   # Метрики для dev-окружения
-  - job_name: 'dev'
+  - job_name: 'api'
     metrics_path: /metrics
     static_configs:
       - targets:
           - 'api-dev:8000'
-
-  # Метрики для prod-окружения
-  - job_name: 'prod'
-    metrics_path: /metrics
-    static_configs:
-      - targets:
-          - 'api-prod:8000'
 
   # Redis Exporter
   - job_name: 'redis'
@@ -24,6 +17,7 @@ scrape_configs:
 
   # RabbitMQ Exporter
   - job_name: 'rabbitmq'
+    metrics_path: /metrics
     static_configs:
       - targets:
-          - 'rabbitmq-exporter:9419'
+          - 'rabbitmq:15692'

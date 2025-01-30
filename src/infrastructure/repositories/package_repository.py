@@ -26,30 +26,24 @@ class PackageRepository(BaseRepository):
             query = (
                 insert(self.model)
                 .values(**package_data.dict(exclude={'id'}))    # Исключаем поле id
-                .returning(self.model.id)   # Возвращаем только id для дальнейшего запроса
+                .returning(self.model)   # Возвращаем весь объект ORM
             )
             result = await session.execute(query)
 
-            created_package_id = result.scalar_one()
+            # Получаем созданный объект
+            created_package = result.scalars().first()
 
-            # Извлекаем полный объект ORM с подгруженными связанными данными
-            query_with_type = (
-                select(self.model)
-                .options(joinedload(PackageOrm.package_type))  # Подгружаем связанные данные
-                .filter(PackageOrm.id == created_package_id)  # Фильтр по созданному id
-            )
-            result_with_type = await session.execute(query_with_type)
+            # Подгружаем связанные данные через refresh
+            await session.refresh(created_package, ['package_type'])
 
-            package_with_type = result_with_type.scalars().first()
-
-            logger.debug(f"[create_with_type] Результат ORM-запроса: {package_with_type}")
+            logger.debug(f"[create_with_type] Результат ORM-запроса: {created_package}")
 
             # Трансформация ORM-объекта в словарь
-            package_dict = {c.key: getattr(package_with_type, c.key) for c in
-                            inspect(package_with_type).mapper.column_attrs}
+            package_dict = {c.key: getattr(created_package, c.key) for c in
+                            inspect(created_package).mapper.column_attrs}
 
             # Добавляем связанные данные вручную
-            package_dict['type_name'] = package_with_type.package_type.name if package_with_type.package_type else None
+            package_dict['type_name'] = created_package.package_type.name if created_package.package_type else None
 
             logger.debug(f"[create_with_type] Преобразованный package_dict: {package_dict}")
 

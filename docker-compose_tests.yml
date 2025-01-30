@@ -1,0 +1,95 @@
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile_test
+    container_name: test_container
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+      - ENV_FOR_DYNACONF=testing
+      - DB_USER=${TEST_DB_USER}
+      - DB_PASS=${TEST_DB_PASS}
+      - DB_NAME=${TEST_DB_NAME}
+      - RABBITMQ_USER=${TEST_RABBITMQ_USER}
+      - RABBITMQ_PASS=${TEST_RABBITMQ_PASS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    command: >
+      sh -c "poetry install --with test,dev --no-root --no-cache &&
+             poetry run alembic upgrade head &&
+             poetry run pytest --cov=src tests"
+
+  postgres:
+    image: postgres:16
+    container_name: postgres_container
+    restart: always
+    environment:
+      POSTGRES_USER: ${TEST_DB_USER}
+      POSTGRES_PASSWORD: ${TEST_DB_PASS}
+      POSTGRES_DB: ${TEST_DB_NAME}
+    ports:
+      - "5455:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${TEST_DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq_container
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${TEST_RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${TEST_RABBITMQ_PASS}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  redis:
+    image: redis/redis-stack:latest
+    container_name: redis_container
+    restart: always
+    ports:
+      - "6739:6379"
+      - "8001:8001"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:

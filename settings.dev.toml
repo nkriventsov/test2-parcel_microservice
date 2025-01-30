@@ -1,0 +1,52 @@
+[development]
+# Настройки БД
+DB_HOST = "postgres"
+DB_PORT = 5432
+DB_NAME = "parcels"
+
+# Настройки Redis
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
+
+# Настройки RabbitMQ
+RABBITMQ_HOST = "rabbitmq"
+RABBITMQ_PORT = 5672
+
+# Настройки внешнего API
+CURRENCY_API_HOST = "https://www.cbr-xml-daily.ru/daily_json.js"
+
+
+[production]
+# Настройки БД
+DB_HOST = "postgres"
+DB_PORT = 5432
+DB_NAME = "parcels"
+
+# Настройки Redis
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
+
+# Настройки RabbitMQ
+RABBITMQ_HOST = "rabbitmq"
+RABBITMQ_PORT = 5672
+
+# Настройки внешнего API
+CURRENCY_API_HOST = "https://www.cbr-xml-daily.ru/daily_json.js"
+
+
+[testing]
+# Настройки БД
+TEST_DB_HOST = "postgres"
+TEST_DB_PORT = 5432
+TEST_DB_NAME = "parcels_testing"
+
+# Настройки Redis
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
+
+# Настройки RabbitMQ
+TEST_RABBITMQ_HOST = "rabbitmq"
+TEST_RABBITMQ_PORT = 5672
+
+# Настройки внешнего API
+CURRENCY_API_HOST = "https://www.cbr-xml-daily.ru/daily_json.js"

@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  # Метрики для dev-окружения
+  - job_name: 'api'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'api-dev:8000'
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets:
+          - 'redis-exporter:9121'
+
+  # RabbitMQ Exporter
+  - job_name: 'rabbitmq'
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'rabbitmq:15692'

@@ -1,0 +1,322 @@
+services:
+  # Контейнер - API (Dev)
+  api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api_dev_container
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV_FOR_DYNACONF=development
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - LOG_LEVEL="DEBUG"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    profiles:
+      - dev
+    command: >
+      sh -c "poetry install --with test,dev --no-root --no-cache &&
+             poetry run alembic upgrade head &&
+             poetry run python src/main.py"
+
+
+  # Контейнер - API (Prod)
+  api-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api_prod_container
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    environment:
+      - ENV_FOR_DYNACONF=production
+    profiles:
+      - prod
+    command: >
+      sh -c "poetry run alembic upgrade head &&
+             poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4"
+
+
+  # Контейнер - Celery Worker (Dev и Prod)
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_container
+    volumes:
+      - .:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    environment:
+      - ENV_FOR_DYNACONF=development
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+    command: >
+      poetry run celery -A src.core.celery_app.celery_instance worker --loglevel=DEBUG --pool=prefork
+    profiles:
+      - dev
+      - prod
+
+  # Контейнер - Celery Beat (Dev и Prod)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_beat_container
+    volumes:
+      - .:/app
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    environment:
+      - ENV_FOR_DYNACONF=development
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+    command: >
+      poetry run celery -A src.core.celery_app.celery_instance beat --loglevel=DEBUG
+    profiles:
+      - dev
+      - prod
+
+  # Контейнер - Flower (только Dev)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flower_container
+    volumes:
+      - .:/app
+    ports:
+      - "5555:5555"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app_network
+    environment:
+      - ENV_FOR_DYNACONF=development
+    command: >
+      sh -c "poetry run celery -A src.core.celery_app.celery_instance flower 
+      --port=5555 
+      --broker_api=http://mitmproxy:8080/api/ 
+      --loglevel=debug"
+    profiles:
+      - dev
+
+  mitmproxy:
+    image: mitmproxy/mitmproxy
+    container_name: mitmproxy_container
+    ports:
+      - "8080:8080" # Перехват запросов от Flower
+    networks:
+      - app_network
+    command: mitmdump --listen-port 8080 --mode reverse:http://rabbitmq:15672/
+    profiles:
+      - dev
+
+  # Контейнер - PostgreSQL
+  postgres:
+    image: postgres:16
+    container_name: postgres_container
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5453:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  # Контейнер - RabbitMQ
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq_container
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_PROMETHEUS_RETENTION: "15d" # Опционально: срок хранения временных данных
+    ports:
+      - "5672:5672"  # Порт для RabbitMQ (используется клиентами)
+      - "15672:15672" # Порт для RabbitMQ Management UI
+      - "15692:15692" # Порт для метрик Prometheus
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+    command: >
+      sh -c "
+      rabbitmq-plugins enable rabbitmq_prometheus &&
+      rabbitmq-server"
+    
+
+  # Контейнер - Redis
+  redis:
+    image: redis/redis-stack:latest
+    container_name: redis_container
+    restart: always
+    ports:
+      - "6739:6379"  # Порт для подключения Redis клиентов
+      - "8001:8001"  # Порт для Redis Insight (веб-интерфейс)
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+
+  # Контейнер - Redis Exporter для метрик Prometheus
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis_exporter_container
+    command: sh -c "apt-get update && apt-get install -y curl && /redis_exporter"
+    environment:
+      - REDIS_ADDR=redis:6379
+    ports:
+      - "9121:9121" # Порт для метрик Prometheus
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+
+
+  # Контейнер - Prometheus development
+  prometheus-dev:
+    image: prom/prometheus:latest
+    container_name: prometheus_container
+    restart: always
+    volumes:
+      - ./prometheus_data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090" # Порт Prometheus для веб-интерфейса
+    depends_on:
+      api-dev:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      redis-exporter:
+        condition: service_started
+    networks:
+      - app_network
+    profiles:
+      - dev
+
+  # Контейнер - Prometheus production
+  prometheus-prod:
+    image: prom/prometheus:latest
+    container_name: prometheus_container
+    restart: always
+    volumes:
+      - ./prometheus_data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090" # Порт Prometheus для веб-интерфейса
+    depends_on:
+      api-prod:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      redis-exporter:
+        condition: service_started
+    networks:
+      - app_network
+    profiles:
+      - prod
+
+  # Контейнер - Grafana development
+  grafana-dev:
+    image: grafana/grafana:latest
+    container_name: grafana_container
+    restart: always
+    ports:
+      - "3000:3000" # Порт Grafana для веб-интерфейса
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin # Логин администратора
+      - GF_SECURITY_ADMIN_PASSWORD=admin # Пароль администратора
+    volumes:
+      - grafana_data:/var/lib/grafana # Для сохранения данных
+    networks:
+      - app_network
+    depends_on:
+      - prometheus-dev
+    profiles:
+      - dev
+
+  # Контейнер - Grafana development
+  grafana-prod:
+    image: grafana/grafana:latest
+    container_name: grafana_container
+    restart: always
+    ports:
+      - "3000:3000" # Порт Grafana для веб-интерфейса
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin # Логин администратора
+      - GF_SECURITY_ADMIN_PASSWORD=admin # Пароль администратора
+    volumes:
+      - grafana_data:/var/lib/grafana # Для сохранения данных
+    networks:
+      - app_network
+    depends_on:
+      - prometheus-prod
+    profiles:
+      - prod
+
+networks:
+  app_network: # Общая сеть для сервисов
+    driver: bridge
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:
+  grafana_data:

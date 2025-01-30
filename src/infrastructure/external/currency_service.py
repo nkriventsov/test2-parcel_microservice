@@ -39,6 +39,7 @@ async def fetch_exchange_rate(redis_manager: RedisManager) -> float:
                 logger.info(f"Курс валют записан в Redis: {usd_rate}")
                 return usd_rate
 
+            # TODO тут может быть намного больше возможных исключений - таймаут, недоступность хоста и тд
             else:
                 raise ObjectNotFoundHTTPException
 

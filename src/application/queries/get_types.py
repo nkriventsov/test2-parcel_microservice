@@ -12,13 +12,8 @@ async def get_all_types_query(db: DBDep) -> list[TypeResponse]:
 
     logger.info("Запущен запрос получения всех типов посылок.")
 
-    try:
-        result = await db.type.get_all()
+    result = await db.type.get_all()
 
-        logger.info(f"Получено {len(result)} типов посылок.")
+    logger.info(f"Получено {len(result)} типов посылок.")
 
-        return result
-
-    except Exception as e:
-        logger.error(f"Ошибка при выполнении запроса типов посылок: {e}")
-        raise
+    return result

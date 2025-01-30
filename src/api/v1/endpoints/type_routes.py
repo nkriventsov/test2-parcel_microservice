@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Body
 from loguru import logger
 
+from src.api.v1.endpoints.samples import create_type_sample_data
 from src.application.commands.create_package_type import create_type_command
 from src.application.queries.get_types import get_all_types_query
 from src.infrastructure.dependencies import DBDep
@@ -29,26 +30,7 @@ async def get_all_types(db: DBDep):
 
 
 @router.post("", response_model=TypeResponse, summary="Создание типа посылки")
-async def create_type(db: DBDep, type_data: TypeCreate = Body(openapi_examples={
-    "1": {
-        "summary": "одежда",
-        "value": {
-            "name": "одежда",
-        }
-    },
-    "2": {
-        "summary": "электроника",
-        "value": {
-            "name": "электроника",
-        }
-    },
-    "3": {
-        "summary": "разное",
-        "value": {
-            "name": "разное",
-        }
-    }
-    })):
+async def create_type(db: DBDep, type_data: TypeCreate = Body(openapi_examples=create_type_sample_data)):
     """Создать новый тип посылки."""
 
     logger.info(f"Создание нового типа посылки: {type_data.model_dump()}")
